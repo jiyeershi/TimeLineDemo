@@ -1,0 +1,48 @@
+前置内容：
+Child Alignment: 9种对齐方式，例如： Upper Left表示 纵向靠上，横向靠左
+
+LayoutElement:
+Minmum width/height 最先被分配，不带任何妥协
+如果父类容器中仍有多余的空间，那么 Preferred width/height 会被分配
+如果上面两条分配完了之后仍有额外的空间，那么 flexible width/height 会被继续分配, 这个分配 经试验是按 flexible width/height 大小 除以 所有 容器内 LayoutElement flexible width/height 总和 来取得额外空间中的份额
+譬如：(flexible width) / (flexible width sum) * (extral width)
+
+Horizontal Layout Group:
+1. 横向排布决定因素: Left Padding, Spacing, Right Padding, Child Alignment 9种对齐方式中横向部分
+  i. Left Padding + Right Padding + Spacing * (N - 1) + child width sum 大于等于 父容器的宽度时, 此时Left Pading, Spacing 起作用，Right Padding 和 Child Alignment被忽略
+	 所有子元素 从左到右 排开，保持 左侧保持 距离父容器 left padding距离，子元素之间按spacing距离分隔， right padding 被忽略（无论子元素按Upper Left, Upper Right, ...哪种对齐方式，都不会生效），
+     也就是说此时 横向排列的规则是根据left padding, 和spacing 属性，从左到右 排列，
+     
+     分析：此时的策略意味着 即使选择 Upper Right, Middle Right, Lower Right中任意一个, Pandding Right 选择100，即期望 靠右对齐且 距离父容器右边距 100, 但实际上如果 真正达到这种效果，意味着 左侧会超出 父容器， 故unity直接抉择 此时
+     应该是不合理的情况，应该忽略这种期望，而应该 优先满足 左边距，让右侧超出 
+
+
+  ii. Left Padding + Right Padding + Spacing * (N - 1) + child width sum 小于 父容器的宽度时:
+  	 Child Alignment 9种对齐方式 ，Left Pading, Spacing，Right Padding 共同作用
+  	 
+  	 当选 Upper Left, Middle Left, Lower Left 时, 最左侧 子元素 距左边界 Left Padding ，忽略Right Padding
+  	 当选 Upper Right, Middle Right, Lower Right 时, 最右侧 子元素 距右边界 Right Padding ，忽略Left Padding
+  	 当选 Upper Center, Middle Center, Lower Center 时, 按 Left Padding , Right Padding 综合计算,规则 先横向居中 ，然后左移 Left Padding / 2, 然后右移动 Right Padding / 2
+
+
+2. 竖向排布决定因素: Child Alignment , Top Padding, Bottom Padding （经试验，竖向排布 不会考虑 元素高度 超出 父容器高度的情况，类比上面的横向排布两种宽度情况）
+    Child Alignment: 对齐方式在竖向中的作用 和 Top Padding, Bottom Padding 共同决定元素竖向的位置
+
+ 	Upper Left, Upper Center, Upper Right 决定所有子元素 都靠上， 此时 Top padding 起作用，Bottom Padding 不起作用，表示子元素顶部 距离父容器 顶部边界 的距离
+ 	Middle Left, Middle Center, Middle Right 决定所有子元素 都居中， 此时 Bottom Padding 作用，这种情况 实验后发现是 是将子元素先 上移 Top padding / 2 个逻辑像素，然后下移 Bottom Padding / 2 个逻辑像素
+ 	Lower Left, Lower Center, Lower Right 决定所有子元素 都靠下，此时 Top padding 不起作用，Bottom Padding 起作用，表示子元素底部 距离父容器 底部边界 的距离
+
+
+3.选项:
+Child Controls Size: 结合 Padding 和 Spacing，以及子元素 LayoutElement 中属性 综合计算子元素 的宽高
+ i .勾选Width: 表示希望 由父容器 控制子元素的宽 此时 父容器结合 子元素中的 Layout Properties 共同计算出 合适的子元素宽高， 子元素 Layout Properties 可以通过 LayoutElement组件 进行重写,
+	也就是说根据 Left Padding, Right Padding, spacing 以及子元素 LayoutElement 组件重写后 的 Layout Properties 中的 Min Width, Preferred Width, Flexible Width 共同计算出一个该子元素的 width
+	【【计算规则参见LayoutElement 组件提供的算法规则】】
+
+ ii .勾选Height: 表示希望 由父容器 控制子元素的高度，类比上面的 计算方式
+
+ 最终，控制完元素宽度后再按上面的 横向排布规则 进行排列
+
+Child Force Expand: 只用于子元素 宽高 + padding + spacing 之和 不能撑满 整个父容器的情况
+  i. 勾选width: 当元素所有元素排布宽度 小于 父容器宽度时， 强制扩展子元素之间的间隙，将多余的宽度部分 均匀配给所有元素的间隙
+  ii. 勾选height: 未验证，类比上面
