@@ -314,9 +314,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8032ca613ccda4008986a3bec0ed1a92, type: 3}
   m_Name: DialogClip
   m_EditorClassIdentifier: 
-  Desc: 
+  Desc: yyyyy
   template:
-    Desc: 
+    Desc: yyyyy
     dialog: {fileID: 0}
 --- !u!114 &5175573795193889671
 MonoBehaviour:
@@ -330,9 +330,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8032ca613ccda4008986a3bec0ed1a92, type: 3}
   m_Name: DialogClip
   m_EditorClassIdentifier: 
-  Desc: 
+  Desc: 8888
   template:
-    Desc: 
+    Desc: 8888
     dialog: {fileID: 0}
 --- !u!114 &6397790953141404387
 MonoBehaviour:

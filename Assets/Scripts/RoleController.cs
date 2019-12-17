@@ -22,11 +22,24 @@ public class RoleController : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     // Update is called once per frame
     void Update()
     {
-        man.SetDestination(target.position);
+        //man.SetDestination(target.position);
         bool isClickLeft = Input.GetMouseButtonDown(ClickBtnFlag);
         if (isClickLeft)
         {
-            //Debug.Log("Click mouse on : " + ClickBtnFlag);
+            Ray ray= Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            bool ishit=Physics.Raycast(ray,out hit);
+            if (ishit)
+            {
+                Vector3 hitPlaneVec3;
+                
+                //if (hit.collider.gameObject.name == "Plane")
+                {
+                    hitPlaneVec3 = new Vector3(hit.point.x, transform.position.y, hit.point.z);
+                    Debug.Log(string.Format("Mouse hit plane: x= {0}, y = {1}, z = {2}", hitPlaneVec3.x, hitPlaneVec3.y, hitPlaneVec3.z));
+                    man.SetDestination(hitPlaneVec3);
+                }
+            }
         }
     }
 
@@ -36,6 +49,8 @@ public class RoleController : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 
         if (eventData.button == PointerEventData.InputButton.Left)
         {
+            
+
             
         }else if (eventData.button == PointerEventData.InputButton.Right)
         {
