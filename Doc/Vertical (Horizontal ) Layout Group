@@ -46,3 +46,16 @@ Child Controls Size: 结合 Padding 和 Spacing，以及子元素 LayoutElement 
 Child Force Expand: 只用于子元素 宽高 + padding + spacing 之和 不能撑满 整个父容器的情况
   i. 勾选width: 当元素所有元素排布宽度 小于 父容器宽度时， 强制扩展子元素之间的间隙，将多余的宽度部分 均匀配给所有元素的间隙
   ii. 勾选height: 未验证，类比上面
+
+
+//附加内容1，暂时不做深入调研, 直接参见英文摘录
+Content Size Fitter: 
+    i. Horizontal Fit: How the width is controlled.
+      Unconstrained Do not drive the width based on the layout element.
+      Min Size  Drive the width based on the minimum width of the layout element.
+      Preferred Size  Drive the width based on the preferred width of the layout element.
+
+  ii. Vertical Fit: How the height is controlled.
+      Unconstrained Do not drive the height based on the layout element.
+      Min Size  Drive the height based on the minimum height of the layout element.
+      Preferred Size  Drive the height based on the preferred height of the layout element.
