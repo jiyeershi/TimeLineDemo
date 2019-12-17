@@ -52,10 +52,11 @@ public class RoleController : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 
             float x = Input.GetAxis("Mouse X");
             float y = Input.GetAxis("Mouse Y");
-            if (!Mathf.Approximately(x, 0f) || !Mathf.Approximately(y, 0f))
-            {
-                Debug.Log(string.Format("Mouse Rotate: x = {0}, y = {1}", x, y));
-            }
+            
+            Vector3 vec3 = Camera.main.transform.TransformDirection(Vector3.right);
+            Vector3 targetDir = vec3 * x * 10;
+            Quaternion qua = Quaternion.LookRotation(targetDir, Vector3.up);
+            Camera.main.transform.rotation = Quaternion.Slerp(Camera.main.transform.rotation, qua, 1 * Time.deltaTime);
 
         }
     }
