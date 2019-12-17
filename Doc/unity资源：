@@ -173,7 +173,7 @@ Tracked Dolly, 其表示VM 按照dolly 轨道来移动， 其下面一行是path
 5.Free Look Camera: 赛车类游戏，追踪赛车比较有用
 	功能：根据鼠标的左右上下移动，围绕 目标物体 旋转 进行观查
 	如何创建: 选择Create Free Look Camera, 在场景中创建 CM FreeLook的物体，选中该物体 可以看到 Inspector 面板,  Follow 属性选择 跟随目标， Look at 属性选择 要 的目标部位，如角色的头部。
-Axis Control 里的 Y Axis/ X Axis 的参数 分别控制 鼠标在横向和纵向 移动时，摄像机横向和纵向移动 的最大速度 MaxSpeed，加速/减速时间 Accel Time/ Decel Time
+Axis Control 里的 Y Axis/ X Axis 标签下的参数; MaxSpeed: 控制 鼠标在横向/纵向 移动时，摄像机横向和纵向移动 的最大速度; Accel Time/ Decel Time: 加速/减速时间 
 Orbits: 定义了三个圆形截面TopRig, MiddleRig, Bottom Rig，可以定义该截面的距地面的高度 Height, 以及截面的半径 Radius, 表示摄像机绕观察物体的上下 所能移动到最大 /最小高度，以及旋转时最大/最下半径， 即摄像机始终在这三个圆形截面内旋转观测.
 Common Lens: 可以看到控制摄像的视野，裁剪面等等，这里如果禁用掉，则可以自定义每个 Orbit 截面的 摄像机视野，裁剪面等摄像机基本设置
     高级点的：就是程序或动画控制 Y Axis/ X Axis 输入，来动态决定相机的移动，这时候需要把 Y Axis/ X Axis的 Input Axis Name 参数置空，将其Value 交由程序控制，或动画控制

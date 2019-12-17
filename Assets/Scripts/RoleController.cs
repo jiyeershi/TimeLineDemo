@@ -9,6 +9,7 @@ public class RoleController : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 {
 
     private NavMeshAgent man;
+    public bool followMouseRotate = false;
 
     public Transform target;
     // Start is called before the first frame update
@@ -24,6 +25,7 @@ public class RoleController : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     {
         //man.SetDestination(target.position);
         bool isClickLeft = Input.GetMouseButtonDown(ClickBtnFlag);
+        //左键点击移动
         if (isClickLeft)
         {
             Ray ray= Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -40,6 +42,21 @@ public class RoleController : MonoBehaviour, IPointerDownHandler, IPointerUpHand
                     man.SetDestination(hitPlaneVec3);
                 }
             }
+        }
+        
+        //鼠标旋转视角
+        if (followMouseRotate)
+        {
+            Ray ray= Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            float x = Input.GetAxis("Mouse X");
+            float y = Input.GetAxis("Mouse Y");
+            if (!Mathf.Approximately(x, 0f) || !Mathf.Approximately(y, 0f))
+            {
+                Debug.Log(string.Format("Mouse Rotate: x = {0}, y = {1}", x, y));
+            }
+
         }
     }
 
