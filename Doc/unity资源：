@@ -190,6 +190,36 @@ TimeLine:
 Track: 每一个gameObject 由一个Track 控制，track 分 Audio Track, Active Track(激活显示物体)，Animation Track, Clip Track(动画片段Track)
 Track Group: 当TimeLine里的Track 数量太多的时候，可以将同一类型的Track， 打成一组 ，相当于文件夹
 
+//API
+Playable: 一个可以定制的运行时生成的对象，他们能够被相互连接到一起，并组成 PlayableGraph 图形的一部分，用来创建复杂的行为。
+
+ScriptPlayable<T> 是一种特殊类型的playable, 主要是扮演着自定义playable （"custom" playable）的作用
+
+ScriptPlayable 最好的例子是 TimelinePlayable; TimelinePlayable 控制着 Timeline graph，它 创建 并且连接 掌管着 Track 和 clip 的playable
+
+PlayableOutput: playable 的输出结果
+
+PlayableGraph
+
+PlayableAsset：用来在运行时 实例化得到 playable 对象的 资源的基类，重载实现 其 公有方法 CreatePlayable 让你的 asset 注入新生成的 playalbe 到
+PlayableGraph 里
+
+PlayableBehaviour：custom playable 脚本 需要继承的基类，它用来 给 PlayableGraph 增加 一些自定义的用户行为 。
+PlayableBehaviour 必定是 一个连接到即将被激活的 output 上的PlayableGraph 的一个分支的 一个部分。
+
+
+PlayableBinding: 掌管着 PlayableAsset 资源的 相关输出 （output）信息.
+PlayableAssets 通过使用 PlayableBinding 指定了 自身支持的输出类型 （type of outputs）
+PlayableBinding 不需要直接创建，一般使用内置的方法创建相关的 PlayableOutput. 例如 通过使用 AnimationPlayableBinding.Create 来为 AnimationPlayableOutput 创建一个 PlayableBinding ； 使用 ScriptPlayableBinding.Create 来为 ScriptPlayableOutput 创建一个 PlayableBinding
+
+PlayableDirector: 实例化 一个 PlayableAsset ，并且控制 Playable 对象的播放
+
+PlayableGraph: 管理 playable 的创建和销毁，也是不同系统的的连接器，链接着实现了IPlayableOutput的那些结构，像AnimationPlayableOutput 、AudioPlayableOutput.
+
+
+TimelineAsset 
+	TrackAsset
+		TimeLineClip: （功能类） 其asset 属性（该属性是继承自 PlayableAsset, 实现了 ITimelineClipAsset 的资产类实例 ，像目前工程里自定义的 AIClip 就是这样的资产类），这样类似 AIClip 的资产类 重载的 CreatePlayable 在运行时调用 产生了 一个playable 对象 
 
 
 (414.0, -586.3, 0.0)
