@@ -185,10 +185,99 @@ Common Lens: 可以看到控制摄像的视野，裁剪面等等，这里如果�
 
 
 TimeLine:
-综述：主要将场景中的需要按时间顺序组织的 角色动画，音频播放，摄像机显示等按轨道组织起来，由时间顺序驱动这些资源进行场景的表现。可以很方便，可视化的调整各个资源的出场顺序以及节奏 来很好的制作出一种类似电影的场景
-它可以做单独的 cutScene，或者由游戏过程中触发的 cutScene, 或者 在游戏中触发了 cutScene 播放的同时，继续操作场景中的角色进行游戏
-Track: 每一个gameObject 由一个Track 控制，track 分 Audio Track, Active Track(激活显示物体)，Animation Track, Clip Track(动画片段Track)
-Track Group: 当TimeLine里的Track 数量太多的时候，可以将同一类型的Track， 打成一组 ，相当于文件夹
+	综述：主要将场景中的需要按时间顺序组织的 角色行为，动画，粒子，音频播放，摄像机显示等按轨道组织起来，由时间顺序驱动这些资源进行场景的表现。可以很方便，可视化的调整各个资源的出场顺序以及节奏 来很好的制作出一种类似电影的场景
+它可以做单独的 cutScene，或者由游戏过程中触发的 cutScene, 或者 在游戏中触发了 cutScene 播放的同时，继续操作场景中的角色进行游戏，技能大招特写，电影。
+	Track: 每一个gameObject 由一个Track 控制，track 分 Audio Track, Active Track(激活显示物体)，Animation Track, Control Track(控制粒子 或者 嵌套的子 Timeline instance 或者实例化 prefab 以及
+ITimeControl Script)，Playable Track(这个是自定义的Track,可以用来嫁接游戏内的各项功能，这样充分利用游戏本身的机制 去扩展 Timeline ，达到更快速的编辑想要的效果)，重点学习如何自定义Playable Track.
+	Track Group: 当TimeLine里的Track 数量太多的时候，可以将同一类型的Track， 打成一组 ，相当于文件夹
+	TimeLine 资源：由两部分组成，Timeline Asset和 Timeline Instance, Timeline Asset主要包含Track, Clip 信息，Track Instance 是一个带有Playable Director 组件的 GameObject, 通过 Playable Director 组件将
+Timeline Asset 与 Timeline Asset中轨道 Binding 的游戏对象结合到一起。
+
+Animation Clip设置:
+Animation Extrapolation: 用来决定 动画Clip 之间的间隙的 应该播放什么样的动画，用以防止动画位置跳跃，人性动画姿势跳跃的异常
+Pre-Extrapolation: 表示动画Clip之前的间隙的推断数据的方式
+Post-Extrapolation: 表示动画Clip之后的间隙的推断数据的方式
+
+Post-Extrapolation, Pre-Extrapolation 参数均有 Hold, Loop, None, Ping Pong, Continue;
+
+Pre-Extrapolation->None: 关闭 Pre-Extrapolation, 表示其选中的 Animation Clip 之前的间隙 , 设置为 该 GameObject 在场景中的 状态，姿势，位置等
+Pre-Extrapolation->Hold: 表示Animation Clip 之前的间隙用 该选中的动画片段的 第一帧设置
+Pre-Extrapolation->Loop: 表示Animation Clip 之前的间隙用 该选中的动画片段的 进行重复播放
+Pre-Extrapolation->Ping Pong: 表示Animation Clip 之前的间隙用 该选中的动画片段的 进行循环播放, 顺播一次，倒播一次算一个循环
+Pre-Extrapolation->Continue: 表示Animation Clip 之前的间隙用 该选中的动画片段的 进行 Loop/Hold, 具体以该 Animation Clip 引用的 动画的源资源 的设置为准，若源资源为Loop,则为Loop
+
+	Post-Extrapolation->None: 关闭 Post-Extrapolation, 表示选中 Animation Clip 之后的间隙 设置为 该 GameObject 在场景中的 状态，姿势，位置等，这个可能有用在如下情况：你可能想为 Animation Clip 和 场景中的物体的动画
+创建一个ease-out。
+	Post-Extrapolation->Hold: 表示Animation Clip 之前的间隙用 动画的 最后一帧设置。
+	其他的几个选项基本类似 Pre-Extrapolation，只是作用于不同的间隙
+
+注意：
+两个动画Clip之间的推断数据由左侧的 Animation Clip 的 Post-Extrapolation 指定，若左侧 Animation Clip 的 Post-Extrapolation 指定为None, 则再由 右侧的
+Animation Clip 的Pre-Extrapolation指定。
+
+Ease-in and ease-out: 
+控制 Animation Clip 与 Animation Clip 之间的过渡，以及 Animation Clip 和 其前后 空隙 所代表的动画之间的过渡，空隙具体是什么动画，参照上述
+控制 Audio Clip 的 淡入淡出
+控制 Playable Clip 的淡入淡出
+
+备注：
+同一Track 下，Animation Clip 和 其前后 空隙 过渡没有试验成功（效果诡异）？？？
+两条Track 用一条Track 上的动画 覆盖 另一Track 上的动画很不错，例如 实现 在很长的 Idle 动画（1分钟长度）里 某一位置 进行 过渡到 射击动画 ，然后又过渡回 Idle动画。有点类似 Spine 里的 一条轨道正常行走动画里，
+另一条轨道播放 射击动画，
+
+Animation track properties：
+功能：设置 track offset 的方式，是否 应用 avatar mask，设置当应用 match clip offsets 时，which transforms 被缺省的改变
+	Property：
+	1.Track Offsets: 应用于该轨道上的所有 Animation Clip
+	Track Offsets->Apply Transform Offsets: 将该轨道上的每一个 Animation Clip 里的动画 从一个具体设置的 Transform 位置和角度 offset 开始播放。经试验，如果不给每个 Animation Clip 加上 match clip offsets 时，该选项的效果是
+如果 Animation Track 上有一个行走 动画 Joging(带位移)，第二个为 原地 Idle动画，则播放时， Joging 先走到一定的位置，然后播放 Idle时 会跳回到 Joging开始播放的位置，所以，这也是需要 给 Animation Clip 加 match clip offsets的原因
+	Track Offsets->Apply SceneOffsets: 让 GameObject 从其在当前场景中的位置和旋转 开始运动，使用该选项创建的 Timeline instance 在以下情况有用，当该 Timeline instance 由一个 state machine 过渡过来并且要 过渡到
+另一个 state machine， 或者该 Timeline instance 由一个 Timeline instance 过渡来并且过渡到另一个 Timeline instance.(直译文档：大概就是这个意思？先不深究了)
+	
+	2.Apply Avatar Mask: 应用于该轨道上的所有 Animation Clip
+	应用这个选项，使选择的 Avatar Mask 应用到 该轨道上的所有 Animation Clip
+
+	3.Default Offset Match Fields: 设置 对Animation Clip 应用 matching clip offsets 选项时，哪些 属性受到影响， 该选项 能被 Animation Track 中的每一个 Animation Clip 的属性配置 重写。
+
+Animation clip Playable Asset properties:
+	Property:
+	1.Remove Start Offset: Enable 该选项使得 Animation Clip 从 position Zero 和 rotation Zero 开始。这样使得 很容易 该动画到其前一个动画, 
+Disabled 该选项 去保持初始的位置和旋转，该Animation Clip 从它的原始位置和旋转开始。（大概意思是有的动画带起始偏移和旋转，该选项用来控制这个起始偏移和旋转？未找到相关资源，暂时保留不研究）
+	2.Foot IK: 脚步反动力学, Enable 该项，当Animation Clip 是一个人型动画，且你希望为脚使用 IK时，Inverse kinematics 试图通过解析和影响从脚部到臀部的放置来 改善脚部滑动。
+当Animation Clip 为非人型动画时（像平台移动，4脚动物等），应该 Disable 该选项
+
+
+Control clip Playable Asset properties:
+	1.Source Game Object: 用来表示 Control Clip 控制的原对象，可以是带 Particle System, nested Timeline instance, or ITimeControl Script 的Game Object
+	2.Prefab: 用来在 Play Mode 下，实例化一个 Prefab, 当 Prefab 设置了值的话， 标签 Source Game Object 会变为  Parent Object， 表示该 Prefab 应该 生成在哪个父节点下。 另外
+Prefab 在该 Control Clip 开始时激活，结束时失活。
+	3.Control Activation: 该选项仅仅控制 a nested Timeline instance or a Particle System
+勾选 则表示 当 Control clip播放时 激活 该 Source Game Object，反选 表示 该 Source Game Object 在整个 Timeline instance 被激活。
+	4.Post Playback: 该选项仅仅影响 nested Timeline instances，控制当主 Timeline 停止播放时，nested Timeline 的激活状态。
+		Active: 该嵌套 Timeline 完成播放后，激活 Source Game Object
+		Inactive: 该嵌套 Timeline 完成播放后，使失活 Source Game Object
+		Revert: 该嵌套 Timeline 完成播放后，使 Source Game Object 的激活状态恢复到 该嵌套Timeline 开始播放时的状态
+	5.Advanced properties: 根据 Control clip 是否控制 Playable Director, Particle System, or ITimeControl Script 来选择附加功能
+		Control Playable Director: 控制 带有 Playable Director 的源对象（nested Timeline instance）
+		Control Particle Systems：Enable该项，当 Control Clip 包含一个 Particle System，设置 Random Seed property 产生一个独一无二不重复的 效果
+		Control ITimeControl：Enable 该项，控制 挂在源对象上面的 ITimeControl scripts
+		Control Children：Enable 该项, 当源对象的子节点对象 带有  a Playable Director, Particle System, or ITimeControl Script, 且希望 control Clip 去控制子节点的组件
+
+
+Playable Director Component:(只摘部分)
+	1.Update Method: Timeline 实例用来更新 自身时间的 clock source 
+		DSP：使用 处理 Audio 同样的 clock source
+		Game Time：使用game clock，该选项 可以被 time scaling 影响
+		Unscaled Game Time：game clock，并且不受 time scaling 影响
+		Manual：通过脚本来设置
+	2.Wrap Mode: Timeline Instance 播放完毕后的行为
+		Hold：播放完毕后 播放指针停在最后一帧
+		Loop：播放完毕 后 进行循环播放
+		None：播放一次，播放完毕 播放指针回到开头。(Plays the Timeline instance once.)
+	3.Initial Time: 文档说是延迟播放，实测为 从Timeline 的 某一时刻开始播放？？？
+
+
+
 
 //API
 Playable: 一个可以定制的运行时生成的对象，他们能够被相互连接到一起，并组成 PlayableGraph 图形的一部分，用来创建复杂的行为。
@@ -214,7 +303,8 @@ PlayableBinding 不需要直接创建，一般使用内置的方法创建相关�
 
 PlayableDirector: 实例化 一个 PlayableAsset ，并且控制 Playable 对象的播放
 
-PlayableGraph: 管理 playable 的创建和销毁，也是不同系统的的连接器，链接着实现了IPlayableOutput的那些结构，像AnimationPlayableOutput 、AudioPlayableOutput.
+PlayableGraph:管理 playable 的创建，连接，销毁，也是不同系统的的连接器，链接着实现了IPlayableOutput的那些结构，像AnimationPlayableOutput 、AudioPlayableOutput.
+(定义了 绑定到 GameObject 或组件上的一系列 playable outputs. 定义了一系列的 playables 以及它们的之间的关系。负责 所有的playables 以及playables 它们的输出 的整个生命周期)
 
 
 TimelineAsset 
