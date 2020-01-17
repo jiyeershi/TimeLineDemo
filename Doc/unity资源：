@@ -279,31 +279,44 @@ Playable Director Component:(只摘部分)
 
 
 
-//API
-Playable: 一个可以定制的运行时生成的对象，他们能够被相互连接到一起，并组成 PlayableGraph 图形的一部分，用来创建复杂的行为。
+//API : Although the Playables API is currently limited to animation, audio, and scripts, it is a generic API that will eventually be used by video and other systems.
 
-ScriptPlayable<T> 是一种特殊类型的playable, 主要是扮演着自定义playable （"custom" playable）的作用
+1.Playable: 一个可以定制的运行时生成的对象，他们能够被相互连接到一起，并组成 PlayableGraph 图形的一部分，用来创建复杂的行为。
 
+ScriptPlayable<T> 是一种特殊类型的 playable, 主要是扮演着自定义playable （"custom" playable）的作用.
+
+A good example of a ScriptPlayable is the TimelinePlayable which is controlling the Timeline graph. It creates and links together the playables in charge of the tracks and the clips.
 ScriptPlayable 最好的例子是 TimelinePlayable; TimelinePlayable 控制着 Timeline graph，它 创建 并且连接 掌管着 Track 和 clip 的playable
 
+
 PlayableOutput: playable 的输出结果
+A valid playable output should be linked to a playable. If a playable output is not linked to a playable, the playable output does nothing.
+To link a playable output to a playable, use the PlayableOutput.SetSourcePlayable() method. The linked playable acts as the root of the playable tree, for that specific playable output.
+一个有效的 playable out 应当链接到一个 playable, 如果不链接到一个 playable, 那么 playable output 不做任何事
+使用 PlayableOutput.SetSourcePlayable() 去链接一个 playable, 该 playable 会作为 playable tree 的根。
+一个创建 playableOutput 的例子：
+var playableOutput = AnimationPlayableOutput.Create(playableGraph, "Animation", GetComponent<Animator>());
+var clipPlayable = AnimationClipPlayable.Create(playableGraph, clip);
+// Connect the Playable to an output
+playableOutput.SetSourcePlayable(clipPlayable); //该 clipPlayable 将作为 连接到 playableOutput 的根 playable
 
-PlayableGraph
+可以看出，playableOutput 将 playable 连接起来，并且输出数据到 关联的 具体使用数据的组件，我简单理解为 将数据 输出到组件吧。
 
-PlayableAsset：用来在运行时 实例化得到 playable 对象的 资源的基类，重载实现 其 公有方法 CreatePlayable 让你的 asset 注入新生成的 playalbe 到
-PlayableGraph 里
+PlayableAsset：用来在运行时 实例化一个 playable 对象的 资源的基类，需要重载其 公有方法 CreatePlayable 用以让该 asset 注入一个新生成的 playalbe 到PlayableGraph 里
 
-PlayableBehaviour：custom playable 脚本 需要继承的基类，它用来 给 PlayableGraph 增加 一些自定义的用户行为 。
-PlayableBehaviour 必定是 一个连接到即将被激活的 output 上的PlayableGraph 的一个分支的 一个部分。
+PlayableBehaviour：custom playable 脚本 需要继承的基类，它用来 给 PlayableGraph 增加 一些用户定义的行为 。
+A PlayableBehaviour must be part of a branch of a PlayableGraph that is connected to an output to be active.
+PlayableBehaviour 必定是 PlayableGraph 的一个分支的 一个部分。PlayableBehaviour 需要被连接到即将被激活的 output 上？？？（可能翻译的不对？）
 
-
-PlayableBinding: 掌管着 PlayableAsset 资源的 相关输出 （output）信息.
+	
+PlayableBinding: 管理着 PlayableAsset 资源的 最终的 相关输出 （output）信息. 指定了 playable 的输出到哪个对象，输出的名字。例如 TimelineAsset 的 outPut 就是一个 PlayableBinding 列表，此时每个 PlayableBinding 
+都指定了 每条 Track 的输出信息。
 PlayableAssets 通过使用 PlayableBinding 指定了 自身支持的输出类型 （type of outputs）
 PlayableBinding 不需要直接创建，一般使用内置的方法创建相关的 PlayableOutput. 例如 通过使用 AnimationPlayableBinding.Create 来为 AnimationPlayableOutput 创建一个 PlayableBinding ； 使用 ScriptPlayableBinding.Create 来为 ScriptPlayableOutput 创建一个 PlayableBinding
 
 PlayableDirector: 实例化 一个 PlayableAsset ，并且控制 Playable 对象的播放
 
-PlayableGraph:管理 playable 的创建，连接，销毁，也是不同系统的的连接器，链接着实现了IPlayableOutput的那些结构，像AnimationPlayableOutput 、AudioPlayableOutput.
+PlayableGraph:管理 playable(以及 playableOutput) 的创建，连接，销毁，也是不同系统的的连接器，链接着实现了IPlayableOutput的那些结构，像AnimationPlayableOutput 、AudioPlayableOutput.
 (定义了 绑定到 GameObject 或组件上的一系列 playable outputs. 定义了一系列的 playables 以及它们的之间的关系。负责 所有的playables 以及playables 它们的输出 的整个生命周期)
 
 
@@ -311,6 +324,8 @@ TimelineAsset
 	TrackAsset
 		TimeLineClip: （功能类） 其asset 属性（该属性是继承自 PlayableAsset, 实现了 ITimelineClipAsset 的资产类实例 ，像目前工程里自定义的 AIClip 就是这样的资产类），这样类似 AIClip 的资产类 重载的 CreatePlayable 在运行时调用 产生了 一个playable 对象 
 
+
+TimelinePlayable:ScriptPlayable 最好的例子是 TimelinePlayable; TimelinePlayable 控制着 Timeline graph，它 创建 并且连接 掌管着 Track 和 clip 的playable
 
 (414.0, -586.3, 0.0)
 
