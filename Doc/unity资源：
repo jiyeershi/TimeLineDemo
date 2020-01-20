@@ -316,18 +316,58 @@ PlayableBinding 不需要直接创建，一般使用内置的方法创建相关�
 
 PlayableDirector: 实例化 一个 PlayableAsset ，并且控制 Playable 对象的播放
 
-PlayableGraph:管理 playable(以及 playableOutput) 的创建，连接，销毁，也是不同系统的的连接器，链接着实现了IPlayableOutput的那些结构，像AnimationPlayableOutput 、AudioPlayableOutput.
-(定义了 绑定到 GameObject 或组件上的一系列 playable outputs. 定义了一系列的 playables 以及它们的之间的关系。负责 所有的playables 以及playables 它们的输出 的整个生命周期)
+PlayableExtensions：
+Extensions for all the types that implements IPlayable.
+Extension methods are static methods that can be called as if they were instance methods on the extended type.
+所有实现了 IPlayable 的类型 的方法扩展
+扩展方法是静态方法，能被Playable扩展类型的实例调用
+
+PlayableGraph:管理 playable(以及 playableOutput) 的创建，连接，销毁。
+也通过那些实现了IPlayableOutput的结构 连接到不同 系统，例如AnimationPlayableOutput 、AudioPlayableOutput.
+综合理解：定义了 绑定到 GameObject 或组件上的一系列 playable outputs. 定义了一系列的 playables 以及它们的之间的关系。负责 所有的playables 以及playables 它们的输出(playableOutputs) 的整个生命周期
+	
+PlayableOutputExtensions:
+所有实现了 IPlayableOutput 的类的方法扩展，大体说明类似PlayableExtensions。
+
+ScriptPlayable<T0>：
+一个 IPlayable 的实现，该实现包含 为 PlayableGraph 实现的一个 PlayableBehaviour， PlayableBehaviour主要用来实现一个 custom Playable。
+你可以在 ScriptPlayable objects 上使用 PlayableExtensions 中的方法	
+
+ScriptPlayableBinding：
+一个 PlayableBinding 包含了 代表 ScriptingPlayableOutput 的信息
+
+ScriptPlayableOutput：
+一个 IPlayableOutput 的实现，该实现 包含了对 PlayableGraph 的一个脚本化输出
+你可以在每一个 ScriptPlayableOutput object 上使用 PlayableOutputExtensions 中的方法
 
 
+
+Timeline 一些杂记：
+
+TimelinePlayable:ScriptPlayable 最好的例子是 TimelinePlayable; TimelinePlayable 控制着 Timeline graph，它 创建 并且连接 掌管着 Track 和 clip 的playable
+即TimeLine 是Playable 系统的一个实现
+
+资源结构：
 TimelineAsset 
 	TrackAsset
 		TimeLineClip: （功能类） 其asset 属性（该属性是继承自 PlayableAsset, 实现了 ITimelineClipAsset 的资产类实例 ，像目前工程里自定义的 AIClip 就是这样的资产类），这样类似 AIClip 的资产类 重载的 CreatePlayable 在运行时调用 产生了 一个playable 对象 
 
 
-TimelinePlayable:ScriptPlayable 最好的例子是 TimelinePlayable; TimelinePlayable 控制着 Timeline graph，它 创建 并且连接 掌管着 Track 和 clip 的playable
+custom playable VS default playable (如：Animation Playable)
+共同点：
+1.资源定义：
+ custom playable : 定义TrackAsset，以及实现了 PlayableAsset ，片段 Clip 资源，例如 当前项目里中的 AIClip
+ Animation Playable :也有对应的资源 轨道资源 AnimationTrack， 片段 Clip 资源 AnimationPlayableAsset
+2.创建playable实例：
+ custom playable：可以通过CreateTrackMixer 创建自定义的 Mixplayable（简写），例如 当前项目里的 ScriptPlayable<AIMixerBehaviour> ，也通过 CreatePlayable 创建了针对片段的playable, ScriptPlayable<AIBehaviour>
+ Animation Playable: 也有相应的 AnimationMixerPlayable, AnimationClipPlayable
 
-(414.0, -586.3, 0.0)
+不同点：
+custom playable ：功能自定义
+Animation Playable ：内置功能
+
+总结:看上去 custom playable 和 Animation Playable 像是一套模板或是基本类似。
+
 
 
 
