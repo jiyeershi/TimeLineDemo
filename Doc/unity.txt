@@ -1,0 +1,276 @@
+学习网站：
+https://www.uwa4d.com/
+游戏蛮牛
+
+1.摄像机projection 理解，实验结果貌似不对
+2.编辑器iso, persp理解
+3.povit，canvas, 适配
+4.烘焙
+
+摄像机projection: 影响game窗口里场景的展示
+正交：矩形投射区域，摄像机看到的范围小
+透视：追星投射区域，摄像机看到的范围大
+
+2D demo 概念:
+pixels per Unit
+Box Collider
+Edge Collider
+坐标大小
+
+2D demo 当前问题：1.主角朝左会嵌入地面，2.主角落在UFO上会自动移动
+
+
+spaceShooter游戏内引用关系
+脚本里引用脚本（DestroyByContact.cs 引用GameController.cs）
+
+重要：先生成了游戏中的对象，在给其绑定各种行为，即脚本，在脚本中又联系了游戏中其他对象联系在一起
+
+创建精灵帧动画:
+1.选中Sprite Sheet图片，将精灵大图切片，选中该图，使用Sprite Editor
+2.拖动sprite Sheet到hierarchy，点击window->Animation，打开面板，新增动画，将1中的切出的小图拖进面板，调整所需要的参数
+
+创建Animator Controller:
+1.在project视图下找到，合适的文件夹(譬如：animation),右键——>Create->Animator Controller, 打开Animator面板,新建testAC
+2.创建动画层layer,定义 动画间 translate 的条件参数
+3.将已有的帧动画 拖到 1中的面板中，生成各个动画状态，创建各个状态的变迁条件，生成状态图
+4.将做好的Animator Controller （testAC）拖到Hierarchy上的对象上
+
+物理材质 Physics Materials:
+有Friction 摩擦系数
+Bounciness 弹跳系数
+
+UI:
+pivot: 元素自身的中心点，自己定位到父节点的锚点，（相当于基于从元素的这一点把元素钉在父节点上, 和cocos2dx的锚点一个概念）
+	（0.5， 0.5）相当于该元素的正中心
+anchor: 在父节点上找到的某一个定位点
+		anchor有4个属性：min X, max X, min Y, max Y, 这4个属性可以组合出4个点（min X, min Y）,（min X, max Y）,（max X, min Y）,（max X, max Y），即锚点最多可以有4个，在unity界面中可以看到锚点的4个锥形。这个具体怎么使用？
+		
+		1、当 min X 等于 max X 且 min Y 等于 max Y时, 4个锚点指向同一点，譬如：min X = max X = 0.5, min Y = max Y = 0.5, 此时4个锚点均指向父元素的正中心，此时设置自身坐标为 pos X = 10, pos Y = 10, pivot X = 0.5, pivot Y = 0.5, 则表示自身的pivot点（本例中为元素的中心点）到 父元素的锚点（本例中4个锚点为同一点，即父元素中心点）的距离为 X方向 为10，y方向为10。
+		此时若改变父元素的大小，结果是自身pivot点相对于父元素的锚点的的 相对位置 始终不变，且自身的大小不变
+
+		2、当 min X 不等于 max X 且 min Y 不等于 max Y时，此时可以看到unity界面中4个锥形分离，表示4个锚点不在同一位置，拖动锚点可以看到4条虚线，此时Rect Transform的pos X, pos Y属性变成了
+		Left, Top, Right, Bottom属性，这4个属性表示自身的4条矩形边框相对于父节点4条矩形边框的距离
+		若此时改变父元素的大小，结果是上述的4个距离保持不变，即子节点的4个边界距离父节点的边界保持不变，但是子节点大小随之改变（才能保证边界距离始终不变）
+
+
+
+
+显示层级：
+sort Layer->order in layer->z axis
+
+canvas:
+1.Render mode:
+	screen space overlay: canvas 显示在场景其他物体的上面
+	screen space camera: 摄像机渲染模式，可以设置用于渲染canvas的摄像机（直接拖动摄像机到Render Camera属性），
+		设置canvas距离该相机的距离的值（属性Plane Distance）假设为数值z1，此时该摄像机看到的其他场景中的某一元素与该摄像机的距离为z2(物体的Pos Z值减去摄像机的Pos Z值)，若z1>z2， 则canvas距离摄像机更远，显示的结果为canvas在该物体的后面
+	world space: 此时canvas可以像其他物体一样，可以拖动，通过设置Pos Z，来决定其显示顺序
+
+2.canvas 内组件的层级：按照子节点在canvas内树形结构决定，与其他2d引擎一样
+3.多个canvas用摄像机模式时，可以为canvas设置sort Layer进行canvas间的显示排序
+
+4.canvas 可以认为是当前屏幕，其尺寸比例根据实际屏幕变化（譬如在game视窗中选择各种分辨率可以看到canvas的尺寸比例变化）
+5.适配：在这个canvas视窗中的UI元素怎么显示? 
+  通过设置canvas的 Canvas Scaler组件
+  属性UI Scale Mode选择为Scale With Screen Size，即根据屏幕大小缩放
+  属性Reference Resolution 设置设计分辨率
+  属性Screen Match Mode 选择Match Width or Height，此时会出现 属性Match，这是一个滑动条 当滑到最左边时表示按宽进行适配（此时效果类似cocos2dx的fixed width），滑到最右边表示按高适配（此时效果类似cocos2dx的fixed height)
+  那当位于中间时效果可以猜测 按高且按宽适配，Screen Match Mode属性的另外两个属性shrink, expand经试验应该表示fixed width适配和 fixed Height适配
+  
+适配策略 比较cocos2dx:
+1.显著不同：
+a.总的来说 unity会根据实际屏幕大小，设计分辨率以及canvas的适配策略将canvas先调整到合适的大小，譬如设计分辨率720*1280，在按宽适配方案下，在iphoneX
+	(1125*2436)下，canvas的大小会变为720*1559
+
+b.然后将canvas内的各个UI元素按照摆放每个UI时设置的策略 重新进行重新定位
+	很重要的是, UI元素重新定位时，所依赖数值不会根据canvas的变化而发生变化，这句话 不好描述，请看下面的解释就行
+	譬如上面的a中策略得到的canvas在两块屏幕一个是iphoneX(1125*2436) ，以及另一个我假设屏幕phoneY(400*400)下canvas大小分别是720*1559，720*720，
+	i.如果有一个按钮显示策略是[povit(0.5, 0.5), anchor（min X=0,max X=0, minY=1, maxY=1, posX=100,posY=100 ),size(100,100) ] 即按钮中心距屏幕左上角的（100， 100），则在iphoneX上可以看到该按钮 在屏幕整个高度的1459/1559位置，而在phoneY上可以看到该按钮在屏幕高度的100/400位置，
+	
+	ii.如果将该按钮的策略改为[povit(0.5, 0.5), anchor（min X=0,max X=0, minY=1, maxY=1, posX=100,posY=600 ),size(100,100) ] 即按钮中心距屏幕左上角的（100， 600），那么显示的结果分别是iphoneX高度的600/1559位置，phoneY的屏幕下方的-200位置，所以看不到
+
+c.再在将canvas整体缩放到屏幕中显示,上面的适配方案下，在iphoneX中显示，缩放率（1125/720=1.5625）
+
+而cocos2dx的quick分支的适配方案（基于cocos2dx 3.3 以及cocos studio v2.0.6），就更为粗暴一点
+a. 将所有元素在cocos stuido中摆放好后，导出一个成一个节点 Node
+b. 将节点加到场景中
+c. 按照适配方案计算出的缩放率， 将场景进行整体缩放，这样导致的弊端是需要重新适配界面中的某些元素
+
+
+Layout 参数：
+Child Force Expand: 
+勾选width，在水平布局里会起作用，表示将子元素 按父容器宽度 横向平铺在 父容器里， 不会改变子元素的大小，
+	当父容器的宽度小于子元素的总宽度时，所有子元素之间间隙会变为0，且只能从父容器的最左侧开始平铺（即选择Text Anchor中的平铺显示方式 会失效）
+勾选height，在垂直布局里会起作用，表示将子元素 按父容器高度  垂直平铺在 父容器里， 不会改变子元素的大小，
+	当父容器的高度小于子元素的总宽度时，所有子元素之间间隙会变为0，且只能从父容器的最左侧开始平铺（即选择Text Anchor中的平铺显示方式 会失效）
+
+
+RectTransform 属性解释：
+anchoredPosition：a.当4个锚点聚在一个点时，该UI元素 pivot 点到 父类锚点的距离 b.
+anchorMax
+anchorMin
+offsetMax
+offsetMin
+pivot
+rect
+sizeDelta
+
+
+Quaternion.identity
+
+
+添加第二个摄像机后：
+测试结果：
+若相机中有
+给新增加的摄像机的Clear Flags属性设置为SkyBox或Solid Color,显示结果为两个摄像机看到的交集？
+给新增加的摄像机的Clear Flags属性设置为Depth only或Dont Clear,则显示结果为两个摄像机看到所有元素的并集？
+
+对象的层级：
+canvas 的Render Mode选择Screen Space-overlay 表示UI显示在所有物体的最上面，注意若同一场景 多个canvas 选择该模式，那么canvas 的显示顺序由
+	Sort Order决定，Sort Order越大越在上层
+canvas 的Render Mode选择Screen Space-camera 表示由所选择的渲染相机 Render Camera，canvas的Plane Distance（canvas到摄像机的距离）
+	属性，Sorting Layer属性，Order In Layer属性，以及渲染相机的depth共同决定
+	a. canvas 与 其他物体的显示顺序：
+		i.若canvas 与其他物体用的渲染摄像机不同，则直接看所采用的摄像机深度depth（其他所有条件均不用关心）,值越大，越后渲染，所以其渲染的物体越在上层，
+			深度一样 则随机，不再参考其他条件进行排序（经测试验证）
+		ii.若canvas 与其他物体用的渲染摄像机相同，则按照canvas的Plane Distance与 物体到摄像机的距离（两者z坐标的差值）相比较，距离摄像机越近，
+			越后渲染，显示越靠上
+	b. canvas 与 另一canvas的显示顺序：
+		i.若canvas 与另一canvas用的渲染摄像机不同，则直接看所采用的摄像机深度depth（其他所有条件均不用关心）,值越大，越后渲染，
+			所以其渲染的物体越在上层，深度一样 则随机，不再参考其他条件进行排序（经测试验证）
+		ii.若canvas 与另一canvas用的渲染摄像机相同，则先比较Sorting Layer(层级越高越后绘制) ，若Sorting Layer相同，则比较
+			Order in Layer（值越大越靠后绘制），若相同则比较Plane Distance（值越小越后绘制）
+
+
+Toggle:
+Toggle 的 onValueChanged 表示只要状态发生改变就会被回调
+只有两种情况被回调，即两种情况被状态改变：
+
+情况1：
+直接对自身 Toggle 操作
+当通过代码直接修改其 isOn 状态 到与 先前的状态相反 时（即只有在该 Toggle 的 isOn值 发生变化时），会触发回调，举例说就是 在编辑器里默认状态是isOn为true的话，代码里 再重新设置isOn为true, 则不会触发onValueChanged，但代码设置为isOn为false，则会
+触发回调
+
+情况2：
+将几个 Toggle 添加到 Toggle Group ，
+a.将某一个 Toggle 选中的 置为 非选中 ，则只会 通知 该 Toggle 状态改变
+b.将其中 某一 非选中的 Toggle 设置 选中时，则除了自身状态变化会有回调通知外，其他的 原本被选中的 Toggle 会
+被修改为 非选中状态，且 他们会 收到 状态改变的回调通知，而原本为非选中的 Toggle, 由于状态没有改变，所以无回调通知，
+
+
+另外补充：
+Toggle Group 使用规则： 
+1、这个组件的核心功能是，在其管理下的Toggle 只能被选中一个，即当一个被选中时，就会取消 其他被选中的Toggle。但是如下
+2、当某个 Toggle 由选中到未选中，不会 通知其他Toggle 更新状态，只有自己会收到变化通知
+3、当某个 未选中 Toggle 在 变成 选中 这种情况发生时， 才会触发该组件 去 刷新其他所有 Toggle 的状态, 将其他 选中的 置为非选中，
+此时 这些被改变状态的Toggle， 会收到 回调通知， 而未发生状态变化的 也无 回调通知
+
+举例说明：
+1.创建一个gameObject, 添加一个Toggle Group
+2.新加5个 Toggle, 默认选中，将这5个Toggle 加到 gameObject 上，并设置他们的 Toggle Group 为gameObject
+3.代码中控制 将 最后一个 Toggle 状态设置为 true, 这种情况 无 onValueChanged 回调通知，因为其状态无变化，界面勾选情况和初始状态无异， 将其状态 设置为 false， 则收到 onValueChanged 通知， 界面上该Toggle 的选中被取消
+4.将 3 中的 Toggle 默认状态 改为 非选中，并在代码中 将其 状态改为 选中，则其他 4个 默认状态 为 选中的 立即变成未选中状态，并且都收到回调通知
+
+	
+ 1.	若干个动画 最好要能够有初始状态，有始有终，不然会出现 某一个动画改了节点的属性后，再切其他动画也不能回到最初状态，
+ 案例：
+ A为初始动画，保持静帧，B动画 改变多个节点的alpha， 这样A到B顺利得到效果，但是B回到A,却看不到节点了
+
+ 2.点击5星评价动画案列： 将所有状态 按逻辑 分两组 ，用两个动画层 共同控制, 解耦 多个状态  导致 状态之间无必要的交错 而带来的复杂性 
+
+
+scrollview:
+pos:  剩下的未显示内容 / 整个视口以外的内容
+譬如竖屏 上下滑动的案例： pos = 屏幕下方未显示出来的内容高度 / 整个屏幕以外内容的总高度
+当所有未显示的内容 都在屏幕下方时 pos = 1, 向上滑动直到 所有未显示内容在屏幕上方 是 pos = 0
+
+UIMAP中的布局 约束 研究，以及手动调坐标的时机
+
+
+jiyeQQ124772115
+
+Todo:
+image: simple, splice
+canvas clear mode
+同时开启多个协程
+attribute
+sqllite 
+pointDown, pointEnter
+坐标系转换 重点
+图集
+Input.touchCount > 1 触摸点个数
+sizeDelta
+tick
+assetBundle
+profile
+动画研究
+材质，模型，Avatar
+ScriptableObject && [Serializable]
+
+
+
+背景缩放，分辨率
+本地存储
+
+
+c#:
+1.接口肯定不能实例化，居然可以创建接口的Stack类型
+例1：
+internal interface testInterface
+{
+    void Update();
+}
+
+class A{
+
+}
+class B
+{
+    public testInterface m_testInterface;
+    public Stack<testInterface> m_testInterfaceStack;
+    public B(){
+        m_testInterface = new testInterface();               //错误，不能实例接口
+        m_testInterfaceStack = new Stack<testInterface>();	 //ok,可以这样用
+    }
+}
+
+例2：
+internal interface testInterface<T>
+{
+    void Update();
+}
+
+class A{
+
+}
+class B
+{
+    public testInterface<A> m_testInterface;
+    public Stack<testInterface<A>> m_testInterfaceStack;
+    public B(){
+        m_testInterface = new testInterface<A>();				//错误，不能实例接口
+        m_testInterfaceStack = new Stack<testInterface<A>>(); 	//ok,可以这样用
+    }
+}
+
+------------------------------------------------------------------------------------
+adb shell setprop debug.firebase.analytics.app com.tangramgames.gourddoll.wordcrush
+开始使用
+要使用 DebugView，您必须先在设备上启用“调试”模式：
+
+Android
+要在 Android 模拟设备上启用 Analytics（分析）“调试”模式，请执行以下这行命令：
+
+adb shell setprop debug.firebase.analytics.app <软件包名称>
+
+“调试”模式将保持启用状态，直至您通过执行以下这行命令明确停用“调试”模式：
+
+adb shell setprop debug.firebase.analytics.app .none.
+
+iOS
+要在开发设备上启用 Analytics（分析）“调试”模式，请在 Xcode 中指定以下命令行参数：
+
+-FIRDebugEnabled
+
+“调试”模式将保持启用状态，直至您通过指定以下命令行参数明确停用“调试”模式：
+
+-FIRDebugDisabled

@@ -1,0 +1,172 @@
+ScriptableObject && [Serializable]
+基本介绍：
+
+    游戏里存在的许多配置信息，需要在运行时读取，用来生成对象（如：配置子弹：子弹类型（真子弹、假子弹、追踪子弹等），子弹速度，伤害数值，子弹关联的特效等。）
+    有多种方案可以保存这些配置信息，像XML,json,excel,txt等
+    但是这几种格式一般只能保存一些简单的数据类型：数值，字符串等基本数据类型
+
+    在Unity里可以用其自定义文件(.asset) 做到上面的功能。
+
+    优点：
+        可以保存数据类型多样（int、string、Vector3、GameObject、Transform、Texture等）如关联预设，关联图片等资源数据，而XML、TXT等只能保存（int、string、Vector3 等基本数据类型）。
+        另外：这种方式 相当于将一个对象直接序列化成.asset文件，存到磁盘上，下次读取后直接反序列化成具体的游戏对象，这点相比其他几种配置方式，更加方便快捷
+        这是一种游戏里的更具体维度的配置，像每一关的关卡初始配置，每种子弹的配置
+
+    缺点：
+        如果配置数据中保存了（GameObject、Texture）等资源数据，当关联的资源被删除时，配置数据将丢失，需要重新将新的资源再次关联到配置数据上。
+
+生成这种.asset本地文件：
+
+1.定义子弹
+
+// 子弹类型枚举
+public enum BulletType
+{
+    DirectAttack = 0,  // 直接攻击
+    Phony,             // 假子弹
+    Real,              // 真子弹
+    Track,             // 追踪子弹
+}
+
+public class Bullet : ScriptableObject
+{
+    [MenuItem("Tools/MyTool/Do It in C#")]
+    static void DoIt()
+    {
+        EditorUtility.DisplayDialog("MyTool", "Do It in C# !", "OK", "");
+    }
+
+    // Bullet 类直接继承自 ScriptableObject
+
+    // 子弹类型
+    public BulletType bulletType = BulletType.DirectAttack;
+
+    // 子弹速度
+    public int speed = 10;
+
+    // 伤害数值
+    public int damage = 5;
+
+    // 子弹关联的特效
+    public GameObject effectObj;
+
+
+}
+
+2.直接编辑器生成asset文件
+public class CreateAsset : Editor
+{
+
+    // 在菜单栏创建功能项
+    [MenuItem("CreateAsset/Asset")]
+    static void Create()
+    {
+        // 实例化类  Bullet
+        ScriptableObject bullet = ScriptableObject.CreateInstance<Bullet>();
+
+        // 如果实例化 Bullet 类为空，返回
+        if (!bullet)
+        {
+            Debug.LogWarning("Bullet not found");
+            return;
+        }
+
+        // 自定义资源保存路径
+        string path = Application.dataPath + "/BulletAeeet";
+
+        // 如果项目总不包含该路径，创建一个
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        //将类名 Bullet 转换为字符串
+        //拼接保存自定义资源（.asset） 路径
+        path = string.Format("Assets/BulletAeeet/{0}.asset", (typeof(Bullet).ToString()));
+
+        // 生成自定义资源到指定路径
+        AssetDatabase.CreateAsset(bullet, path);
+    }
+
+
+    [MenuItem("CreateAsset/GetAsset")]
+    static void GetAsset()
+    {
+        //读取 .asset 文件, 直接转换为 类  Bullet
+        Bullet bullet = AssetDatabase.LoadAssetAtPath<Bullet>("Assets/BulletAeeet/Bullet.asset");
+
+        // 打印保存的数据
+        Debug.Log("BulletType  :" + Enum.GetName(typeof(BulletType), bullet.bulletType));
+        Debug.Log("Speed       :" + bullet.speed);
+        Debug.Log("damage      :" + bullet.damage);
+
+        if (bullet.effectObj)
+        {
+            Debug.Log("EffectObj   :" + bullet.effectObj.name);
+        }
+    }
+}
+
+参考：https://blog.csdn.net/qq_15559109/article/details/79375581
+
+
+[Serializable]:
+1.基本介绍
+C# 特性(Attribute)之Serializable特性：
+作用跟上面的ScriptableObject 一样，只不过更加基础，提供语言层面的序列化和反序列化
+譬如我们要将一个MyObject类的对象序列化到本地。
+定义:
+
+[Serializable]
+public class MyObject
+{
+    public int n1 { get; set; }
+    public int n2 { get; set; }
+    public string str { get; set; }
+}
+
+//在其他地方(如程序入口类)定义此函数并调用此函数进行测试
+public void SerializableObj()
+{
+    MyObject obj = new MyObject();
+    obj.n1 = 1;
+    obj.n2 = 24;
+    obj.str = "一些字符串";
+    IFormatter formatter = new BinaryFormatter();
+    
+    Stream stream = new FileStream("MyFile.bin", FileMode.Create,
+    FileAccess.Write, FileShare.None);
+    formatter.Serialize(stream, obj);
+    stream.Close();
+}
+
+//在其他地方(如程序入口类)定义此函数并调用此函数进行测试
+public MyObject DeSerializableObj()
+{
+    IFormatter formatter = new BinaryFormatter();
+    Stream stream = new FileStream("MyFile.bin", FileMode.Open,
+    FileAccess.Read, FileShare.Read);
+    MyObject obj = (MyObject)formatter.Deserialize(stream);
+    stream.Close();
+    return obj;
+}
+上面测试结果：
+序列化结果在本地生成MyFile.bin文件
+反序列化MyFile.bin文件生成MyObject对象
+
+2.选择序列化
+对应类中某些不想序列化的字段的处理，
+譬如类中某个字段用于记录当时运行的线程id，则下次反序列化出该字段可能已经无意义
+此时可以对类中某一些不需要的序列化字段上添加标记 [NonSerialized]
+
+3.自定义序列化
+需要序列化的类需要实现ISerializable接口，暂不深究
+[Serializable]
+public class MyObject : ISerializable
+{
+    public int n1 { get; set; }
+    public int n2 { get; set; }
+    public string str { get; set; }
+}
+这种方式可以在版本升级时用到这种自定义的序列化方式：譬如前一个版本序列化到本地的数据没有某个字段，新版版MyObject里增加了字段
+那么如果用默认的序列化方式就不能把老版本的数据反序列化出来，用自定义的序列化方式可以判断前面的版本是否有某些字段
